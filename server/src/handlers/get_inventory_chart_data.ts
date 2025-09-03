@@ -1,8 +1,24 @@
+import { db } from '../db';
+import { inventoryItemsTable } from '../db/schema';
 import { type InventoryChartData } from '../schema';
 
 export const getInventoryChartData = async (): Promise<InventoryChartData[]> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching inventory data optimized for pie chart visualization.
-    // Should return array of {itemName, quantity} objects for each inventory item.
-    return [];
+  try {
+    // Fetch all inventory items for chart visualization
+    const results = await db.select({
+      itemName: inventoryItemsTable.itemName,
+      quantity: inventoryItemsTable.quantity
+    })
+    .from(inventoryItemsTable)
+    .execute();
+
+    // Return data formatted for chart visualization
+    return results.map(item => ({
+      itemName: item.itemName,
+      quantity: item.quantity // Integer column - no conversion needed
+    }));
+  } catch (error) {
+    console.error('Fetching inventory chart data failed:', error);
+    throw error;
+  }
 };

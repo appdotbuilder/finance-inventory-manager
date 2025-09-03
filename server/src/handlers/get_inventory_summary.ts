@@ -1,12 +1,26 @@
+import { db } from '../db';
+import { inventoryItemsTable } from '../db/schema';
 import { type InventorySummary } from '../schema';
+import { count, sum } from 'drizzle-orm';
 
 export const getInventorySummary = async (): Promise<InventorySummary> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is calculating inventory summary statistics:
-    // - Total number of different item types (count of inventory items)
-    // - Sum of all quantities across all items
-    return Promise.resolve({
-        totalItemTypes: 0,
-        totalStockQuantity: 0
-    });
+  try {
+    // Get total count of inventory item types and sum of all quantities
+    const result = await db.select({
+      totalItemTypes: count(inventoryItemsTable.id),
+      totalStockQuantity: sum(inventoryItemsTable.quantity)
+    })
+    .from(inventoryItemsTable)
+    .execute();
+
+    const summary = result[0];
+    
+    return {
+      totalItemTypes: summary.totalItemTypes || 0,
+      totalStockQuantity: parseInt(summary.totalStockQuantity?.toString() || '0', 10)
+    };
+  } catch (error) {
+    console.error('Inventory summary calculation failed:', error);
+    throw error;
+  }
 };

@@ -1,13 +1,23 @@
+import { db } from '../db';
+import { inventoryItemsTable } from '../db/schema';
 import { type CreateInventoryItemInput, type InventoryItem } from '../schema';
 
 export const createInventoryItem = async (input: CreateInventoryItemInput): Promise<InventoryItem> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is creating a new inventory item persisting it in the database.
-    return Promise.resolve({
-        id: 0, // Placeholder ID
+  try {
+    // Insert inventory item record
+    const result = await db.insert(inventoryItemsTable)
+      .values({
         itemName: input.itemName,
-        quantity: input.quantity,
-        createdAt: new Date(),
-        updatedAt: new Date()
-    } as InventoryItem);
+        quantity: input.quantity
+      })
+      .returning()
+      .execute();
+
+    // Return the created inventory item (no numeric conversions needed for integer columns)
+    const inventoryItem = result[0];
+    return inventoryItem;
+  } catch (error) {
+    console.error('Inventory item creation failed:', error);
+    throw error;
+  }
 };
